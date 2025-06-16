@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator Modern</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        #qrcode-placeholder {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            width: 272px; /* Disesuaikan dengan ukuran QR + border */
+            height: 272px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-radius: 1.25rem; /* rounded-2xl */
+            color: rgba(255, 255, 255, 0.4);
+        }
+        /* NEW STYLES for the QR Code container */
+        #qr-canvas-container {
+            padding: 0;
+            margin: 0;
+            width: 272px;
+            height: 272px;
+        }
+        #qr-canvas-container canvas {
+            /* Efek timbul dan border tebal diterapkan di sini */
+            border: 8px solid white;
+            border-radius: 1.25rem; /* rounded-2xl */
+            box-shadow: 
+                -8px -8px 16px rgba(255, 255, 255, 0.05), /* Highlight shadow */
+                8px 8px 16px rgba(0, 0, 0, 0.4),       /* Dark shadow */
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1); /* Inner border highlight */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden">
+
+    <main class="w-full max-w-4xl flex flex-col items-center space-y-12">
+        
+        <div x-data="qrGenerator()" class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-8 text-center transition-all duration-500">
+            
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">QR Code Generator</h1>
+            <p class="text-white/60 mb-8">Ubah teks atau URL menjadi QR Code secara instan.</p>
+            
+            <div class="mb-6 flex justify-center items-center h-[272px]">
+                <div x-show="!isGenerated" id="qrcode-placeholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>QR Code akan muncul di sini</span>
+                </div>
+                <div x-show="isGenerated" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100">
+                    <div id="qr-canvas-container"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <input 
+                    type="text" 
+                    x-model="text"
+                    @keydown.enter="generate"
+                    placeholder="Ketikkan URL atau teks di sini..." 
+                    class="w-full bg-white/10 border border-white/20 rounded-lg py-3 px-4 text-white placeholder-white/40 focus:ring-2 focus:ring-pink-500 focus:outline-none transition-all duration-300">
+                
+                <button @click="generate" class="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
+                    Generate QR Code
+                </button>
+
+                <div x-show="isGenerated" x-transition>
+                    <button @click="download" class="w-full mt-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
+                        Download (.png)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-2xl pt-8">
+            <div class="swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center"><h3 class="font-semibold text-lg mb-2 text-cyan-400">Cepat & Instan</h3><p class="text-sm text-white/60">Generasi QR Code dilakukan langsung di browser Anda, tanpa menunggu server.</p></div>
+                    <div class="swiper-slide bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center"><h3 class="font-semibold text-lg mb-2 text-pink-400">Modern & Responsif</h3><p class="text-sm text-white/60">Tampilan indah di semua perangkat, baik desktop maupun mobile.</p></div>
+                    <div class="swiper-slide bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center"><h3 class="font-semibold text-lg mb-2 text-orange-400">Unduh Kualitas Tinggi</h3><p class="text-sm text-white/60">Simpan QR Code Anda sebagai file PNG dengan resolusi tinggi.</p></div>
+                    <div class="swiper-slide bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center"><h3 class="font-semibold text-lg mb-2 text-green-400">Aman & Privat</h3><p class="text-sm text-white/60">Semua data diproses di perangkat Anda dan tidak pernah dikirim ke mana pun.</p></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    
+    <footer class="absolute bottom-4 text-white/40 text-sm">
+        Dibuat dengan ❤️ menggunakan Tailwind CSS & Alpine.js
+    </footer>
+
+    <script>
+        // Inisialisasi Alpine.js Component
+        function qrGenerator() {
+            return {
+                text: '',
+                isGenerated: false,
+                qrCode: null, // Untuk menyimpan instance dari QR-Code-Styling
+                
+                generate() {
+                    if (!this.text.trim()) {
+                        alert('Input tidak boleh kosong!');
+                        return;
+                    }
+                    
+                    // Bersihkan container QR Code lama jika ada
+                    document.getElementById('qr-canvas-container').innerHTML = '';
+
+                    // Inisialisasi QR Code dengan styling
+                    this.qrCode = new QRCodeStyling({
+                        width: 256,
+                        height: 256,
+                        data: this.text,
+                        margin: 0,
+                        // Styling untuk titik-titik QR Code
+                        dotsOptions: {
+                            color: "#1a1a1a", // Warna titik (hitam pekat)
+                            type: "rounded" // Tipe titik: 'rounded', 'dots', 'classy', 'square'
+                        },
+                        // Styling untuk latar belakang QR
+                        backgroundOptions: {
+                            color: "#ffffff", // Latar belakang putih bersih
+                        },
+                        // Styling untuk 3 kotak di pojok
+                        cornersSquareOptions: {
+                            type: "extra-rounded" // Tipe pojok: 'dot', 'square', 'extra-rounded'
+                        },
+                        imageOptions: {
+                            crossOrigin: "anonymous",
+                            margin: 10
+                        }
+                    });
+
+                    // Tampilkan QR Code ke dalam container div
+                    this.qrCode.append(document.getElementById("qr-canvas-container"));
+                    this.isGenerated = true;
+                },
+
+                download() {
+                    if (!this.qrCode) return;
+                    // Gunakan fungsi download bawaan dari library
+                    this.qrCode.download({ name: "qrcode", extension: "png" });
+                }
+            }
+        }
+
+        // Inisialisasi Swiper.js Slider
+        const swiper = new Swiper('.swiper', { /* ... Opsi swiper tetap sama ... */
+            loop: true, slidesPerView: 1, spaceBetween: 20, autoplay: { delay: 4000, disableOnInteraction: false },
+            breakpoints: { 768: { slidesPerView: 3, spaceBetween: 30 } }
+        });
+    </script>
+
+</body>
+</html>
